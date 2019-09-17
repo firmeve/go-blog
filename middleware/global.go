@@ -5,7 +5,7 @@ import (
 )
 
 func Before(ctx iris.Context)  {
-	ctx.Write([]byte("Global before middleware"))
+	//ctx.Write([]byte("Global before middleware"))
 	ctx.Next()
 }
 
