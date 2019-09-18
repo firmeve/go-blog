@@ -3,10 +3,14 @@ package main
 import (
 	"github.com/blog/routes"
 	"github.com/kataras/iris"
+	requestLogger "github.com/kataras/iris/middleware/logger"
 )
 
 func main() {
-	app := iris.Default()
+	//app := iris.Default()
+	app := iris.New()
+	//app.Use(recover.New())
+	app.Use(requestLogger.New())
 	// Load config
 	app.Configure(iris.WithConfiguration(iris.YAML("./app.yml")))
 	// Load routing
