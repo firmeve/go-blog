@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/blog/routes"
+	"github.com/blog/internal/routes"
 	"github.com/kataras/iris"
 	requestLogger "github.com/kataras/iris/middleware/logger"
 )

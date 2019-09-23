@@ -7,12 +7,19 @@ import (
 )
 
 func Before(ctx iris.Context)  {
-	ctx.Write([]byte("Global before middleware"))
+	//ctx.Values().Set(versioning.Key, ctx.URLParamDefault("version", "2.0"))
+	//ctx.Write([]byte("Global before middleware"))
+
+	//record response
+	ctx.Record()
 	ctx.Next()
 }
 
 func After(ctx iris.Context)  {
-	fmt.Println("After")
+	// Record Body
+	fmt.Println(string(ctx.Recorder().Body()))
+	//fmt.Println("After")
+	//fmt.Println("zzzzz")
 	ctx.Write([]byte("Global after middleware"))
 }
 
