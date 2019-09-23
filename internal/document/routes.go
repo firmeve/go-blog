@@ -1,8 +1,7 @@
-package routes
+package document
 
 import (
-	"github.com/blog/internal/handlers"
-	"github.com/blog/internal/middleware"
+	"github.com/blog/internal/document/handlers"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/versioning"
 )
@@ -23,8 +22,10 @@ func registerMacros(app *iris.Application) {
 
 // Register api routes
 func registerRoutes(app *iris.Application) {
+	//Register global middleware
+	//middleware.UseGlobal(app)
 	// Register global middleware
-	middleware.UseGlobal(app)
+	//middleware.UseGlobal(app)
 
 	usersAPI := app.Party("/")
 	// version 1.

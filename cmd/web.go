@@ -1,7 +1,8 @@
 package main
 
 import (
-	"github.com/blog/internal/routes"
+	"github.com/blog/internal/document"
+	"github.com/blog/internal/pkg/routes"
 	"github.com/kataras/iris"
 	requestLogger "github.com/kataras/iris/middleware/logger"
 )
@@ -9,16 +10,17 @@ import (
 func main() {
 	//app := iris.Default()
 	app := iris.New()
+	//app.OnErrorCode()
 	//app.Use(recover.New())
 	app.Use(requestLogger.New())
 	// Load config
-	app.Configure(iris.WithConfiguration(iris.YAML("./app.yml")))
+	app.Configure(iris.WithConfiguration(iris.YAML("config/app.yml")))
 	// Load routing
-	routes.Register(app)
+	routes.RegisterRoutes(app,document.Register)
 
 	app.Get("/product-problem", newProductProblemRender)
 
-	app.Run(iris.Addr(":28183"))
+	app.Run(iris.Addr(":28184"))
 }
 
 func newProductProblemRender(ctx iris.Context)  {
