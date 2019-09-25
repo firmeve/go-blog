@@ -1,3 +1,6 @@
 Charset: "UTF-8"
 Other:
-  BasePath: "/home/simon/code/golang/src/github.com/blog"
+  #  BasePath: "/home/simon/code/golang/src/github.com/blog"
+  views:
+    extension: "html"
+    path: ""

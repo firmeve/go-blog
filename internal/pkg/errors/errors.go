@@ -1,11 +1,10 @@
 package errors
 
 import (
-	"fmt"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
-	"runtime"
 	"strconv"
+	_ "strconv"
 )
 
 func RegisterHandler(app *iris.Application) {
@@ -13,15 +12,12 @@ func RegisterHandler(app *iris.Application) {
 }
 
 func Status404Page(app *iris.Application) {
-	fmt.Println(runtime.Caller(0))
-	fmt.Println(runtime.Caller(1))
-	fmt.Println(runtime.Caller(2))
 	app.OnErrorCode(iris.StatusNotFound, func(ctx context.Context) {
 		info := map[string]string{
 			"status":  strconv.Itoa(iris.StatusNotFound),
 			"message": "404",
 		}
-		ctx.View("web/errors/404.html", info)
+		ctx.View("errors/404.html", info)
 	})
 }
 
@@ -36,3 +32,4 @@ func Status404Json(ctx context.Context) {
 		},
 	})
 }
+
