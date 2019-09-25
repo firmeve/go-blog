@@ -32,7 +32,7 @@ func Web() *iris.Application  {
 	return webApp
 }
 
-func Run(addr string)  {
+func RunWeb(addr string)  {
 	Web().Run(iris.Addr(addr))
 }
 

@@ -21,10 +21,18 @@ func Status404Page(app *iris.Application) {
 			"status":  strconv.Itoa(iris.StatusNotFound),
 			"message": "404",
 		}
-		ctx.View("../../../web/errors/404.html", info)
+		ctx.View("web/errors/404.html", info)
 	})
 }
 
-func Status404Json() {
-
+func Status404Json(ctx context.Context) {
+	problem := iris.NewProblem().
+		Status(iris.StatusNotFound).
+		Key("message", "Not found")
+	ctx.Problem(problem, iris.ProblemOptions{
+		// Optional JSON renderer settings.
+		JSON: iris.JSON{
+			Indent: "  ",
+		},
+	})
 }
