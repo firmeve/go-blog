@@ -11,7 +11,9 @@ func main() {
 	//app.Use(recover.New())
 	//bootstrap.RunWeb(":28184")
 	app := http.App()
-	app.Default()
-	app.RegisterRoutes(document.Register)
-	app.Run(":28183")
+	app.Bootstrap(http.WithProviders(
+		document.NewServiceProvider(app),
+	))
+	app.Run(app.ConfigFromOtherDefault(`server.addr`, `:80`).(string))
+	//app.RegisterRoutes(document.Register)
 }

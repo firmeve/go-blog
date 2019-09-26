@@ -4,3 +4,5 @@ Other:
   views:
     extension: "html"
     path: ""
+  server:
+    addr: ":28183"
