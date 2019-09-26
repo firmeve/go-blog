@@ -1,18 +1,18 @@
 package http
 
 import (
-	"github.com/blog/internal/document"
-	"github.com/blog/internal/pkg/routes"
 	"github.com/blog/pkg/utils"
+	"github.com/kataras/golog"
 	"github.com/kataras/iris"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 )
 
 var (
-	webApp  *iris.Application
-	webOnce sync.Once
+	app     *Application
+	appOnce sync.Once
 )
 
 type ErrorOption struct {
@@ -22,49 +22,76 @@ type ErrorOption struct {
 	//irisFunc func(ctx iris.Context)
 }
 
+type ServiceProvider interface {
+	Register()
+
+	Boot()
+}
+
+type IrisFunc func(app *iris.Application)
+
 type Application struct {
-	iris        *iris.Application
-	isBootstrap bool
+	iris         *iris.Application
+	booted       bool
+	providers    map[reflect.Type]ServiceProvider
+	providerLock sync.Mutex
 }
 
 func (app *Application) Run(addr string) {
 	app.iris.Run(iris.Addr(addr))
 }
 
-func (app *Application) New() {
-	app.iris = iris.New()
-}
-
-func (app *Application) Bootstrap(addr string) {
-	if app.isBootstrap == true {
-		return
-	}
-
-	// init
+func (app *Application) Default(providers ...ServiceProvider) {
+	// Default global config
 	app.defaultConfigure()
 
-	// template view
+	// Default template view
 	app.defaultView()
 
-	// default global errors
+	// Default global errors @todo 还未测试错误覆盖
 	app.defaultErrorHandler()
 
-	// @todo 只写到这里，路由还没改
-	// Load routing
-	//routes.RegisterRoutes(appebApp, document.Register)
+	// Default middleware
+
+}
+
+func (app *Application) Logger() *golog.Logger {
+	return app.iris.Logger()
+}
+
+func (app *Application) Register(providers ...ServiceProvider) {
+	app.providerLock.Lock()
+	defer app.providerLock.Unlock()
+
+	for _, provider := range providers {
+		providerType := reflect.TypeOf(provider)
+		if _, ok := app.providers[providerType]; !ok {
+			provider.Register()
+			app.providers[providerType] = provider
+		}
+	}
+}
+
+func (app *Application) Boot() {
+	if app.booted {
+		return
+	}
+	for _, provider := range app.providers {
+		provider.Boot()
+	}
 }
 
 // Quickly convert all other configurations
 // @todo waiting testing
-func (app *Application) ConfigFromOther(key string) interface{}  {
+func (app *Application) ConfigFromOther(key string) interface{} {
 	value := app.iris.ConfigurationReadOnly().GetOther()[key]
 
-	if strings.Index(key,`.`) != -1 {
-		keys := strings.Split(key,`.`)
+	if strings.Index(key, `.`) != -1 {
+		keys := strings.Split(key, `.`)
 
 		mapValue := value.(map[string]interface{})
 		length := len(keys)
-		for i,k := range keys {
+		for i, k := range keys {
 			//last
 			if length-1 == i {
 				return mapValue
@@ -102,21 +129,29 @@ func (app *Application) RegisterView(extension, path string) {
 	app.iris.RegisterView(iris.HTML(path, extension))
 }
 
-func (app *Application) RegisterRoutes(routes ...Routes) {
-
-}
-
 // Load default config
-func (app *Application) defaultConfigure() *Web {
+func (app *Application) defaultConfigure() {
 	app.iris.Configure(iris.WithConfiguration(iris.YAML(utils.CurrentRelativePath("../../config/app.yml"))))
 }
 
+// Load default error handler
 func (app *Application) defaultErrorHandler() {
-	app.RegisterErrorHandler(ErrorOption{
-		Status:  iris.StatusNotFound,
-		Message: "Not Found",
-		View:    "errors/404",
-	})
+	errorOptions := []ErrorOption{
+		{
+			Status:  iris.StatusNotFound,
+			Message: "Not Found",
+			View:    "errors/404",
+		},
+		{
+			Status:  iris.StatusNotFound,
+			Message: "403 Error",
+			View:    "errors/403",
+		},
+	}
+
+	for _, option := range errorOptions {
+		app.RegisterErrorHandler(option)
+	}
 }
 
 func (app *Application) RegisterErrorHandler(options ...ErrorOption) {
@@ -126,6 +161,12 @@ func (app *Application) RegisterErrorHandler(options ...ErrorOption) {
 		} else {
 			// json
 		}
+	}
+}
+
+func (app *Application) RegisterRoutes(routes ...IrisFunc) {
+	for _, route := range routes {
+		route(app.iris)
 	}
 }
 
@@ -141,38 +182,22 @@ func (app *Application) errorView(option ErrorOption) {
 	})
 }
 
-func (app *Application) RegisterHandler() {
-	Status404Page(app)
+func (app *Application) Iris() *iris.Application {
+	return app.iris
 }
 
-//func App(app *Application) *iris.Application {
-//	return app.iris
-//}
-
-func Instance() {
-	//return
-}
-
-func NewWeb() {
-	if webApp != nil {
-		return webApp
+func App() *Application {
+	if app != nil {
+		return app
 	}
 
-	webOnce.Do(func() {
-
-		webApp.Get("/product-problem", newProductProblemRender)
+	appOnce.Do(func() {
+		app = &Application{
+			iris:      iris.New(),
+			booted:    false,
+			providers: make(map[reflect.Type]ServiceProvider, 0),
+		}
 	})
 
-	return webApp
-}
-
-func RunWeb(addr string) {
-
-}
-
-func newProductProblemRender(ctx iris.Context) {
-	ctx.Problem(newProductProblem("abc", "ef"), iris.ProblemOptions{
-		//JSON: iris.JSON{
-		//},
-	})
+	return app
 }
