@@ -6,3 +6,7 @@ Other:
     path: ""
   server:
     addr: ":28183"
+  databases:
+    default: "mysql"
+    mysql:
+      addr: "root:root@(192.168.124.5)/blog?charset=utf8mb4&parseTime=True&loc=Local"
