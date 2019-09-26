@@ -67,6 +67,9 @@ func (app *Application) Register(providers ...ServiceProvider) {
 		providerType := reflect.TypeOf(provider)
 		if _, ok := app.providers[providerType]; !ok {
 			provider.Register()
+			if app.booted {
+				provider.Boot()
+			}
 			app.providers[providerType] = provider
 		}
 	}
@@ -79,6 +82,7 @@ func (app *Application) Boot() {
 	for _, provider := range app.providers {
 		provider.Boot()
 	}
+	app.booted = true
 }
 
 // Quickly convert all other configurations
@@ -106,25 +110,24 @@ func (app *Application) ConfigFromOther(key string) interface{} {
 
 // Default template view
 func (app *Application) defaultView() {
-	views := app.ConfigFromOther(`views`).(map[string]string)
+	views := app.ConfigFromOther(`views`).(map[interface{}]interface{})
 
-	path := views[`path`]
+	path := views[`path`].(string)
 	if path == `` {
 		path = utils.CurrentRelativePath("../../web/views")
 	}
 
-	extension := views[`extension`]
+	extension := views[`extension`].(string)
 	if extension == `` {
 		extension = `.html`
 	} else {
 		extension = `.` + extension
 	}
-
 	app.RegisterView(path, extension)
 }
 
 // Register template view
-func (app *Application) RegisterView(extension, path string) {
+func (app *Application) RegisterView(path, extension string) {
 	// Register template
 	app.iris.RegisterView(iris.HTML(path, extension))
 }
@@ -143,8 +146,8 @@ func (app *Application) defaultErrorHandler() {
 			View:    "errors/404",
 		},
 		{
-			Status:  iris.StatusNotFound,
-			Message: "403 Error",
+			Status:  iris.StatusForbidden,
+			Message: "Forbidden",
 			View:    "errors/403",
 		},
 	}
