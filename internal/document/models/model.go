@@ -1,14 +1,14 @@
 package models
 
-import (
-	"github.com/jinzhu/gorm"
-)
+import "time"
 
 type Page struct {
-	gorm.Model
-	ID      uint64 `json:"id",gorm:"primary_key"`
+	Id      uint64 `json:"id",gorm:"primary_key"`
 	Title   string `json:"title"`
 	Content string `json:"content",gorm:"default null"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `sql:"index"`
 }
 
 func (m *Page) TableName() string {

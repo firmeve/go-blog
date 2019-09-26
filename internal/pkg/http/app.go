@@ -137,10 +137,11 @@ func (app *Application) Logger() *golog.Logger {
 
 // Run app server
 func (app *Application) Run(addr string) {
-	err := app.iris.Run(iris.Addr(addr))
-	if err != nil {
-		panic(err)
-	}
+	app.iris.Run(iris.Addr(addr))
+	//err := app.iris.Run(iris.Addr(addr))
+	//if err != nil {
+	//	panic(err)
+	//}
 }
 
 // Register template view

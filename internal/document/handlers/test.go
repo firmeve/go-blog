@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/blog/internal/document/models"
+	"github.com/blog/internal/document/resources"
 	"github.com/blog/internal/pkg/database"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/versioning"
@@ -29,7 +30,7 @@ func FirstTest(ctx iris.Context) {
 	//name := ctx.Params().Get("name")
 	//routeName := ctx.GetCurrentRoute().Name()
 	//ctx.Writef("Hello %s,Route name is%s", name, routeName)
-	ctx.JSON(page)
+	ctx.JSON(resources.NewPageResource(page).Resource())
 	ctx.Next()
 }
 
