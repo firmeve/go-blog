@@ -7,7 +7,7 @@ import (
 type fields []string
 
 type BaseTransformer interface {
-	BaseTransform()
+	Transform()
 }
 
 type BaseTransform struct {
@@ -31,6 +31,7 @@ func (t *BaseTransform) Except(field ...string) *BaseTransform {
 	return t
 }
 
+// Get effective fields
 func (t *BaseTransform) effectiveFields() fields {
 	if len(t.onlyFields) > 0 {
 		return t.onlyFields
@@ -44,10 +45,13 @@ func (t *BaseTransform) effectiveFields() fields {
 	return fields
 }
 
+// Set transfer source
+// fix When child inherits, current is not a child
 func (t *BaseTransform) SetSource(source interface{}) {
 	t.source = source
 }
 
+// Core conversion method
 func (t *BaseTransform) Transform() map[string]interface{} {
 	//@todo 这里有问题，子级继承时,t并不是子级
 	//methods := utils.ReflectMethodsName(t)
@@ -69,6 +73,7 @@ func (t *BaseTransform) Transform() map[string]interface{} {
 	return map[string]interface{}{"data":collection}
 }
 
+// Create a new transform
 func NewTransform(resource interface{}) *BaseTransform {
 	return &BaseTransform{
 		resource:     resource,
