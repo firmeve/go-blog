@@ -7,7 +7,7 @@ import (
 // Reflect get methods name
 // But only support public method
 func ReflectMethodsName(object interface{}) []string {
-	nums := reflect.TypeOf(object).NumMethod()
+	nums := ReflectTypeIndirect(reflect.TypeOf(object)).NumMethod()
 	methods := make([]string, 0)
 	for i := 0; i < nums; i++ {
 		methods = append(methods, reflect.TypeOf(object).Method(i).Name)
@@ -32,11 +32,11 @@ func ReflectCallMethod(object interface{}, name string, params ...interface{}) [
 }
 
 func ReflectFieldsName(object interface{}) []string {
-	reflectType := reflect.TypeOf(object)
-	kind := reflectType.Kind()
-	if  SliceIntIn([]int64{int64(reflect.Array),int64(reflect.Ptr),int64(reflect.Chan),int64(reflect.Map),int64(reflect.Slice)},int64(kind)){
-		reflectType = reflectType.Elem()
-	}
+	reflectType := ReflectTypeIndirect(reflect.TypeOf(object))
+	//kind := reflectType.Kind()
+	//if  SliceIntIn([]int64{int64(reflect.Array),int64(reflect.Ptr),int64(reflect.Chan),int64(reflect.Map),int64(reflect.Slice)},int64(kind)){
+	//	reflectType = reflectType.Elem()
+	//}
 	nums := reflectType.NumField()
 	fields := make([]string, 0)
 	for i := 0; i < nums; i++ {
@@ -44,4 +44,13 @@ func ReflectFieldsName(object interface{}) []string {
 	}
 
 	return fields
+}
+
+func ReflectTypeIndirect(reflectType reflect.Type) reflect.Type {
+	kind := reflectType.Kind()
+	if  SliceIntIn([]int64{int64(reflect.Array),int64(reflect.Ptr),int64(reflect.Chan),int64(reflect.Map),int64(reflect.Slice)},int64(kind)){
+		reflectType = reflectType.Elem()
+	}
+
+	return reflectType
 }
