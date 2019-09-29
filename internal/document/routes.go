@@ -6,28 +6,13 @@ import (
 	"github.com/kataras/iris/versioning"
 )
 
-func Register(app *iris.Application) {
-	registerMacros(app)
-	registerRoutes(app)
-}
-
-// Register route macros
-func registerMacros(app *iris.Application) {
-	app.Macros().Get("string").RegisterFunc("has", func() func(value string) bool {
-		return func(value string) bool {
-			return value == "abc"
-		}
-	})
+type route struct {
+	iris *iris.Application
 }
 
 // Register api routes
-func registerRoutes(app *iris.Application) {
-	//Register global middleware
-	//middleware.UseGlobal(app)
-	// Register global middleware
-	//middleware.UseGlobal(app)
-
-	usersAPI := app.Party("/")
+func (r *route) registerRoutes() {
+	usersAPI := r.iris.Party("/")
 	// version 1.
 	usersAPIV1 := versioning.NewGroup(">= 1, < 2")
 	usersAPIV1.Get("/api/users", func(ctx iris.Context) {
@@ -46,5 +31,20 @@ func registerRoutes(app *iris.Application) {
 
 	versioning.RegisterGroups(usersAPI, versioning.NotFoundHandler, usersAPIV1,usersAPIV2)
 
-	app.Get("/user/{name:string has()}", handlers.FirstTest).Name = "firstTest"
+	r.iris.Get("/user/{name:string has()}", handlers.FirstTest).Name = "firstTest"
+}
+
+// Register route macros
+func (r *route) registerMacros() {
+	r.iris.Macros().Get("string").RegisterFunc("has", func() func(value string) bool {
+		return func(value string) bool {
+			return value == "abc"
+		}
+	})
+}
+
+func newRoute(iris *iris.Application) *route {
+	return &route{
+		iris: iris,
+	}
 }

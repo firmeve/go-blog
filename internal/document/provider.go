@@ -13,7 +13,7 @@ func (p *Provider) Register()  {
 }
 
 func (p *Provider) Boot()  {
-	registerRoutes(p.App().Get(`iris`).(*iris.Application))
+	newRoute(p.App().Get(`iris`).(*iris.Application)).registerRoutes()
 }
 
 func NewProvider(app *pkg.BaseApplication) *Provider {
