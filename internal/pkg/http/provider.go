@@ -105,13 +105,6 @@ func (p *Provider) RegisterMiddleware(before bool, middleware ...IrisMiddleware)
 	}
 }
 
-// Register routes
-//func (p *Provider) RegisterRoutes(routes ...IrisFunc) {
-//	for _, route := range routes {
-//		route(p.iris)
-//	}
-//}
-
 // Default init
 func (p *Provider) Default() {
 	// Default global config
