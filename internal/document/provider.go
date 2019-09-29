@@ -1,21 +1,24 @@
 package document
 
-import "github.com/blog/internal/pkg/http"
+import (
+	"github.com/blog/pkg"
+	"github.com/kataras/iris"
+)
 
-type ServiceProvider struct {
-	*http.BaseServiceProvider
+type Provider struct {
+	*pkg.BaseProvider
 }
 
-func (s *ServiceProvider) Register()  {
+func (p *Provider) Register()  {
 
 }
 
-func (s *ServiceProvider) Boot()  {
-	s.App().RegisterRoutes(Register)
+func (p *Provider) Boot()  {
+	registerRoutes(p.App().Get(`iris`).(*iris.Application))
 }
 
-func NewServiceProvider(app *http.Application) *ServiceProvider {
-	return &ServiceProvider{
-		BaseServiceProvider:http.BaseProvider(app),
+func NewProvider(app *pkg.BaseApplication) *Provider {
+	return &Provider{
+		BaseProvider:pkg.NewBaseProvider(app),
 	}
 }

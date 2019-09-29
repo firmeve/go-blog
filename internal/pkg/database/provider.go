@@ -1,25 +1,28 @@
 package database
 
 import (
-	"github.com/blog/internal/pkg/http"
+	iris2 "github.com/blog/internal/pkg/iris"
+	"github.com/blog/pkg"
 	"github.com/jinzhu/gorm"
-	"github.com/kataras/iris"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"github.com/kataras/iris"
 )
 
 var (
 	DB *gorm.DB
 )
 
-type ServiceProvider struct {
-	*http.BaseServiceProvider
+type Provider struct {
+	*pkg.BaseProvider
 }
 
-func (s *ServiceProvider) Register() {
-	driver := s.App().ConfigFromOtherDefault("databases.default", `mysql`).(string)
+func (p *Provider) Register() {
+	config := p.App().Resolve(`config`).(*iris2.Config)
+	driver := config.GetDefault("databases.default", `mysql`).(string)
+
 	var err error
 	DB, err = gorm.Open(driver,
-		s.App().ConfigFromOther("databases." + driver + `.addr`).(string) )
+		config.Get("databases." + driver + `.addr`).(string))
 
 	if err != nil {
 		panic(err)
@@ -28,14 +31,16 @@ func (s *ServiceProvider) Register() {
 	iris.RegisterOnInterrupt(func() {
 		DB.Close()
 	})
+
+	p.App().Bind(`db`, DB, pkg.WithBindShare(true))
 }
 
-func (s *ServiceProvider) Boot() {
+func (p *Provider) Boot() {
 
 }
 
-func NewServiceProvider(app *http.Application) *ServiceProvider {
-	return &ServiceProvider{
-		BaseServiceProvider: http.BaseProvider(app),
+func NewProvider(app *pkg.BaseApplication) *Provider {
+	return &Provider{
+		BaseProvider: pkg.NewBaseProvider(app),
 	}
 }
