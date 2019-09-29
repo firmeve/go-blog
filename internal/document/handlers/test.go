@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/blog/internal/document/models"
-	"github.com/blog/internal/document/resources"
+	"github.com/blog/internal/document/transfromers"
 	"github.com/blog/internal/pkg/database"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/versioning"
@@ -10,10 +10,12 @@ import (
 )
 
 func FirstTest(ctx iris.Context) {
-
+	//z := []int{1,2,3}
+	c := models.NewStringMap(map[string]string{"a":"a",`b`:`b`})
 	page := &models.Page{
 		Title: "abcdefadfassd",
 		Content: "abcdefafdsafdas",
+		Data1:c,
 	}
 	page.CreatedAt = time.Now()
 	database.DB.Create(page)
@@ -30,7 +32,7 @@ func FirstTest(ctx iris.Context) {
 	//name := ctx.Params().Get("name")
 	//routeName := ctx.GetCurrentRoute().Name()
 	//ctx.Writef("Hello %s,Route name is%s", name, routeName)
-	ctx.JSON(resources.NewPageResource(page).Resource())
+	ctx.JSON(transfromers.NewPage(page).Transform())
 	ctx.Next()
 }
 

@@ -10,7 +10,6 @@ type Provider struct {
 }
 
 func (p *Provider) Register()  {
-
 }
 
 func (p *Provider) Boot()  {
