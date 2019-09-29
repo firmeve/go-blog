@@ -52,8 +52,6 @@ func WithAfterMiddleware(middleware ...IrisMiddleware) utils.OptionFunc {
 	}
 }
 
-// ========== Application struct =========
-
 func (p *Provider) SetBootOption(options ...utils.OptionFunc) *Provider {
 	p.bootOption = utils.ApplyOption(&bootOption{}, options...).(*bootOption)
 	return p
@@ -80,25 +78,6 @@ func (p *Provider) Boot() {
 		p.RegisterMiddleware(false, p.bootOption.afterMiddleware...)
 	}
 }
-
-//// Get iris instance
-//func (p *Provider) Iris() *iris.Application {
-//	return p.iris
-//}
-//
-//// Logger
-//func (p *Provider) Logger() *golog.Logger {
-//	return p.iris.Logger()
-//}
-
-// Run app server
-//func (p *Provider) Run(addr string) {
-//	p.iris.Run(iris.Addr(addr))
-//	//err := p.iris.Run(iris.Addr(addr))
-//	//if err != nil {
-//	//	panic(err)
-//	//}
-//}
 
 // Register template view
 func (p *Provider) RegisterView(path, extension string) {
@@ -132,34 +111,6 @@ func (p *Provider) RegisterRoutes(routes ...IrisFunc) {
 		route(p.iris)
 	}
 }
-//
-//// Service provider register
-//func (p *Provider) Register(providers ...ServiceProvider) {
-//	p.providerLock.Lock()
-//	defer p.providerLock.Unlock()
-//
-//	for _, provider := range providers {
-//		providerType := reflect.TypeOf(provider)
-//		if _, ok := p.providers[providerType]; !ok {
-//			provider.Register()
-//			if p.booted {
-//				provider.Boot()
-//			}
-//			p.providers[providerType] = provider
-//		}
-//	}
-//}
-//
-//// Service provider boot
-//func (p *Provider) Boot() {
-//	if p.booted {
-//		return
-//	}
-//	for _, provider := range p.providers {
-//		provider.Boot()
-//	}
-//	p.booted = true
-//}
 
 // Default init
 func (p *Provider) Default() {
