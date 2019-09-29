@@ -4,6 +4,6 @@ study record blog
 
 ## Install
 ```go
-go mod tidy
+go mod download
 go mod vendor
 ```
