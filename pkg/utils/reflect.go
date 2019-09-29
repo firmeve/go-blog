@@ -1,6 +1,8 @@
 package utils
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // Reflect get methods name
 // But only support public method
@@ -27,4 +29,19 @@ func ReflectCallMethod(object interface{}, name string, params ...interface{}) [
 	}
 
 	return reflect.ValueOf(object).MethodByName(name).Call(newParams)
+}
+
+func ReflectFieldsName(object interface{}) []string {
+	reflectType := reflect.TypeOf(object)
+	kind := reflectType.Kind()
+	if  SliceIntIn([]int64{int64(reflect.Array),int64(reflect.Ptr),int64(reflect.Chan),int64(reflect.Map),int64(reflect.Slice)},int64(kind)){
+		reflectType = reflectType.Elem()
+	}
+	nums := reflectType.NumField()
+	fields := make([]string, 0)
+	for i := 0; i < nums; i++ {
+		fields = append(fields, reflectType.Field(i).Name)
+	}
+
+	return fields
 }

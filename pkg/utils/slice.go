@@ -13,6 +13,17 @@ func SliceStringUnique(items []string) []string {
 	return newItems
 }
 
+func SliceStringExcept(items, excepts []string) []string {
+	newSlice := make([]string, 0)
+	for _, item := range items {
+		if !SliceStringIn(excepts, item) {
+			newSlice = append(newSlice, item)
+		}
+	}
+
+	return newSlice
+}
+
 //func SliceAnyUnique(items []interface{}) []interface{} {
 //	keyItems := make(map[interface{}]bool)
 //	newItems := make([]interface{}, 0)
@@ -27,6 +38,15 @@ func SliceStringUnique(items []string) []string {
 //}
 
 func SliceStringIn(items []string, value string) bool {
+	for _, item := range items {
+		if item == value {
+			return true
+		}
+	}
+	return false
+}
+
+func SliceIntIn(items []int64, value int64) bool {
 	for _, item := range items {
 		if item == value {
 			return true
