@@ -2,10 +2,10 @@ package main
 
 import (
 	"github.com/blog/internal/document"
+	"github.com/blog/internal/pkg"
 	"github.com/blog/internal/pkg/database"
 	"github.com/blog/internal/pkg/http"
 	"github.com/blog/internal/pkg/iris"
-	"github.com/blog/pkg"
 	iris2 "github.com/kataras/iris"
 )
 

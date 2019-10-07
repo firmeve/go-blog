@@ -1,8 +1,8 @@
 package http
 
 import (
+	"github.com/blog/internal/pkg"
 	iris2 "github.com/blog/internal/pkg/iris"
-	"github.com/blog/pkg"
 	"github.com/blog/pkg/utils"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"

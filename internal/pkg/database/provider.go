@@ -1,8 +1,9 @@
 package database
 
 import (
+	"github.com/blog/internal/pkg"
 	iris2 "github.com/blog/internal/pkg/iris"
-	"github.com/blog/pkg"
+	pkg2 "github.com/blog/pkg"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/kataras/iris"
@@ -32,7 +33,7 @@ func (p *Provider) Register() {
 		DB.Close()
 	})
 
-	p.App().Bind(`db`, DB, pkg.WithBindShare(true))
+	p.App().Bind(`db`, DB, pkg2.WithBindShare(true))
 }
 
 func (p *Provider) Boot() {

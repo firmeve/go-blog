@@ -1,7 +1,7 @@
 package document
 
 import (
-	"github.com/blog/pkg"
+	"github.com/blog/internal/pkg"
 	"github.com/kataras/iris"
 )
 

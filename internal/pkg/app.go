@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"github.com/blog/pkg"
 	"reflect"
 	"sync"
 )
@@ -22,7 +23,7 @@ type Application interface {
 }
 
 type BaseApplication struct {
-	*BaseContainer
+	*pkg.BaseContainer
 	booted       bool
 	providers    map[reflect.Type]Provider
 	providerLock sync.RWMutex
@@ -91,7 +92,7 @@ func App() *BaseApplication {
 
 	appOnce.Do(func() {
 		app = &BaseApplication{
-			BaseContainer: NewContainer(),
+			BaseContainer: pkg.NewContainer(),
 			booted:        false,
 			providers:     make(map[reflect.Type]Provider, 0),
 			boxes:         make(map[string]Application, 0),

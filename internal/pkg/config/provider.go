@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/blog/pkg"
+	"github.com/blog/internal/pkg"
 )
 
 type Provider struct {
