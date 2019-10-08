@@ -48,7 +48,7 @@ func ReflectFieldsName(object interface{}) []string {
 
 func ReflectTypeIndirect(reflectType reflect.Type) reflect.Type {
 	kind := reflectType.Kind()
-	if  SliceIntIn([]int64{int64(reflect.Array),int64(reflect.Ptr),int64(reflect.Chan),int64(reflect.Map),int64(reflect.Slice)},int64(kind)){
+	if  SliceUintIn([]uint{uint(reflect.Array),uint(reflect.Ptr),uint(reflect.Chan),uint(reflect.Map),uint(reflect.Slice)},uint(kind)){
 		reflectType = reflectType.Elem()
 	}
 

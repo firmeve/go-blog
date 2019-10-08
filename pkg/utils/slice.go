@@ -46,7 +46,16 @@ func SliceStringIn(items []string, value string) bool {
 	return false
 }
 
-func SliceIntIn(items []int64, value int64) bool {
+func SliceIntIn(items []int, value int) bool {
+	for _, item := range items {
+		if item == value {
+			return true
+		}
+	}
+	return false
+}
+
+func SliceUintIn(items []uint, value uint) bool {
 	for _, item := range items {
 		if item == value {
 			return true
