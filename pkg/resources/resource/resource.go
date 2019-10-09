@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"github.com/blog/pkg/resources"
 	"github.com/blog/pkg/utils"
 	"reflect"
 	"regexp"
@@ -9,17 +10,34 @@ import (
 
 type MapCache map[string]map[string]string
 
+type TransformerFunc func(source interface{}) map[string]interface{}
+
 var (
 	resourcesFields  = make(map[reflect.Type]MapCache, 0)
 	resourcesMethods = make(map[reflect.Type]MapCache, 0)
 )
 
-type Resource struct {
-	source interface{}
-	fields []string
+type Resolver interface {
+	Resolve() map[string]interface{}
 }
 
-func (r *Resource) Fields(fields ...string) *Resource {
+type Resource struct {
+	source      interface{}
+	fields      []string
+	transformer interface{}
+}
+
+func (r *Resource) SetTransformer(transformer interface{}) *Resource {
+	r.transformer = transformer
+	return r
+}
+
+func (r *Resource) SetSource(source interface{}) *Resource {
+	r.transformer = source
+	return r
+}
+
+func (r *Resource) SetFields(fields ...string) *Resource {
 	r.fields = fields
 	return r
 }
@@ -30,25 +48,56 @@ func (r *Resource) Source() interface{} {
 
 //Core conversion method
 func (r *Resource) Transform(source interface{}) map[string]interface{} {
-	fields := r.ReflectRelationFields(source)
-	methods := r.ReflectRelationMethods(source)
-	collection := make(map[string]interface{}, 0)
-	for _, field := range r.fields {
-		// method 优先
-		if v, ok := methods[field]; ok {
-			collection[v[`alias`]] = utils.ReflectValueInterface(utils.ReflectCallMethod(source, v[`method`])[0])
-		}
 
-		if v, ok := fields[field]; ok {
-			if v[`method`] != `` {
+	if fn, ok := r.transformer.(TransformerFunc); ok {
+		return fn(source)
+	} else if transformer,ok := r.transformer.(resources.Transformer); ok {
+		fields := r.ReflectRelationFields(source)
+		methods := r.ReflectRelationMethods(transformer)
+		collection := make(map[string]interface{}, 0)
+		for _, field := range transformer.Field() {
+			// method 优先
+			if v, ok := methods[field]; ok {
 				collection[v[`alias`]] = utils.ReflectValueInterface(utils.ReflectCallMethod(source, v[`method`])[0])
-			} else {
-				collection[v[`alias`]] = utils.ReflectFieldValueInterface(source, field)
+			}
+
+			if v, ok := fields[field]; ok {
+				if v[`method`] != `` {
+					collection[v[`alias`]] = utils.ReflectValueInterface(utils.ReflectCallMethod(source, v[`method`])[0])
+				} else {
+					collection[v[`alias`]] = utils.ReflectFieldValueInterface(source, field)
+				}
 			}
 		}
-	}
 
-	return collection
+		//transformer.Transform()
+		return collection
+	}
+	//if utils.ReflectIsTypeKind(r.transformer, reflect.Func) {
+	//
+	//} else {
+	//
+	//}
+
+	//fields := r.ReflectRelationFields(source)
+	//methods := r.ReflectRelationMethods(r.transformer)
+	//collection := make(map[string]interface{}, 0)
+	//for _, field := range r.fields {
+	//	// method 优先
+	//	if v, ok := methods[field]; ok {
+	//		collection[v[`alias`]] = utils.ReflectValueInterface(utils.ReflectCallMethod(source, v[`method`])[0])
+	//	}
+	//
+	//	if v, ok := fields[field]; ok {
+	//		if v[`method`] != `` {
+	//			collection[v[`alias`]] = utils.ReflectValueInterface(utils.ReflectCallMethod(source, v[`method`])[0])
+	//		} else {
+	//			collection[v[`alias`]] = utils.ReflectFieldValueInterface(source, field)
+	//		}
+	//	}
+	//}
+	//
+	//return collection
 }
 
 func (r *Resource) ReflectRelationMethods(source interface{}) MapCache {
@@ -66,7 +115,6 @@ func (r *Resource) ReflectRelationMethods(source interface{}) MapCache {
 			exceptFieldMethodName := name[0 : len(name)-5]
 			methods[exceptFieldMethodName] = map[string]string{`alias`: utils.StringSnakeCase(exceptFieldMethodName), `method`: name}
 		}
-
 	}
 
 	resourcesMethods[reflectType] = methods
@@ -108,12 +156,18 @@ func (r *Resource) ReflectRelationFields(source interface{}) MapCache {
 	return fields
 }
 
-func NewResource(source interface{}, fields ...string) *Resource {
+func NewResource(source interface{},transformer interface{}) *Resource {
 	return &Resource{
 		source: source,
-		fields: fields,
+		transformer:transformer,
 	}
 }
+//func NewResource(source interface{}, fields ...string) *Resource {
+//	return &Resource{
+//		source: source,
+//		fields: fields,
+//	}
+//}
 
 //func (r *Resource) ReflectRelationFields(source interface{}) map[string]interface{} {
 //
