@@ -24,6 +24,17 @@ func SliceStringExcept(items, excepts []string) []string {
 	return newSlice
 }
 
+func SliceStringOnly(items, excepts []string) []string {
+	newSlice := make([]string, 0)
+	for _, item := range items {
+		if SliceStringIn(excepts, item) {
+			newSlice = append(newSlice, item)
+		}
+	}
+
+	return newSlice
+}
+
 //func SliceAnyUnique(items []interface{}) []interface{} {
 //	keyItems := make(map[interface{}]bool)
 //	newItems := make([]interface{}, 0)

@@ -1,7 +1,6 @@
 package transfromers
 
 import (
-	"fmt"
 	"github.com/blog/internal/document/models"
 	"github.com/blog/internal/pkg/transform"
 )
@@ -11,7 +10,6 @@ type Page struct {
 }
 
 func (p *Page) GetData1Field() interface{} {
-	fmt.Println("GGGGGGGGGGGGGGGGG")
 	return p.Resource().(*models.Page).Data1.Src
 }
 

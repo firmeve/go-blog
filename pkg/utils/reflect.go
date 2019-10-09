@@ -33,10 +33,6 @@ func ReflectCallMethod(object interface{}, name string, params ...interface{}) [
 
 func ReflectFieldsName(object interface{}) []string {
 	reflectType := ReflectTypeIndirect(reflect.TypeOf(object))
-	//kind := reflectType.Kind()
-	//if  SliceIntIn([]int64{int64(reflect.Array),int64(reflect.Ptr),int64(reflect.Chan),int64(reflect.Map),int64(reflect.Slice)},int64(kind)){
-	//	reflectType = reflectType.Elem()
-	//}
 	nums := reflectType.NumField()
 	fields := make([]string, 0)
 	for i := 0; i < nums; i++ {
@@ -46,11 +42,100 @@ func ReflectFieldsName(object interface{}) []string {
 	return fields
 }
 
+func ReflectStructFields(object interface{}, onlyPublic bool) map[string]map[string]interface{} {
+	reflectType := ReflectTypeIndirect(reflect.TypeOf(object))
+	reflectValue := reflect.Indirect(reflect.ValueOf(object))
+	nums := reflectType.NumField()
+	fields := make(map[string]map[string]interface{}, 0)
+
+	for i := 0; i < nums; i++ {
+		typeField := reflectType.Field(i)
+		valueField := reflectValue.Field(i)
+		fieldName := typeField.Name
+		fieldTag := typeField.Tag
+
+		if onlyPublic && reflectValue.Field(i).CanSet() {
+			fields[fieldName] = map[string]interface{}{`tag`:fieldTag,`value`:valueField}
+		} else if !onlyPublic {
+			fields[fieldName] = map[string]interface{}{`tag`:fieldTag,`value`:valueField}
+		}
+	}
+
+	return fields
+}
+
+func ReflectStructFieldsTag(object interface{}) map[string]reflect.StructTag {
+	reflectType := ReflectTypeIndirect(reflect.TypeOf(object))
+	nums := reflectType.NumField()
+	fields := make(map[string]reflect.StructTag, 0)
+
+	for i := 0; i < nums; i++ {
+		typeField := reflectType.Field(i)
+
+		fields[typeField.Name] = typeField.Tag
+	}
+
+	return fields
+}
+
+//func ReflectPublicFieldsValue(object interface{}) map[string]reflect.Value {
+//	reflectValue := reflect.ValueOf(object)
+//	reflectType := reflect.TypeOf(object)
+//
+//	nums := reflectValue.NumField()
+//	fields := make(map[string]reflect.Value, 0)
+//	for i := 0; i < nums; i++ {
+//		if reflectValue.Field(i).CanSet() {
+//			fields[reflectType.Field(i).Name] = reflectValue.Field(i)
+//		}
+//	}
+//
+//	return fields
+//}
+
+//func ReflectStructFields(object interface{}, onlyPublic bool) map[reflect.StructField]reflect.Value {
+//	reflectValue := reflect.Indirect(reflect.ValueOf(object))
+//	reflectType := ReflectTypeIndirect(reflect.TypeOf(object))
+//
+//	nums := reflectValue.NumField()
+//	fields := make(map[reflect.StructField]reflect.Value, 0)
+//	for i := 0; i < nums; i++ {
+//		valueField := reflect.Indirect(reflectValue.Field(i))
+//		typeField := reflectType.Field(i)
+//		if valueField.CanSet() && onlyPublic {
+//			fields[typeField] = valueField
+//			continue
+//		}
+//
+//		fields[typeField] = valueField
+//	}
+//
+//	return fields
+//}
+
 func ReflectTypeIndirect(reflectType reflect.Type) reflect.Type {
-	kind := reflectType.Kind()
-	if  SliceUintIn([]uint{uint(reflect.Array),uint(reflect.Ptr),uint(reflect.Chan),uint(reflect.Map),uint(reflect.Slice)},uint(kind)){
+	if SliceUintIn(
+		[]uint{uint(reflect.Array), uint(reflect.Ptr), uint(reflect.Chan), uint(reflect.Map), uint(reflect.Slice)},
+		uint(reflectType.Kind()),
+	) {
 		reflectType = reflectType.Elem()
 	}
 
 	return reflectType
+}
+
+func ReflectIsTypeKind(object interface{}, kind reflect.Kind) bool {
+	return reflect.TypeOf(object).Kind() == kind
+}
+
+func ReflectIsValueKind(object interface{}, kind reflect.Kind) bool {
+	return reflect.ValueOf(object).Kind() == kind
+}
+
+func ReflectValueInterface(value reflect.Value) interface{} {
+	if value.CanAddr() {
+		return value.Addr().Interface()
+	}
+
+	return value.Interface()
 }
