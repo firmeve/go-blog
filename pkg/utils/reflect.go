@@ -16,8 +16,23 @@ func ReflectMethodsName(object interface{}) []string {
 	return methods
 }
 
+func ReflectMethods(object interface{}) map[string]reflect.Method {
+	nums := ReflectTypeIndirect(reflect.TypeOf(object)).NumMethod()
+	methods := make(map[string]reflect.Method, 0)
+	for i := 0; i < nums; i++ {
+		method := reflect.TypeOf(object).Method(i)
+		methods[method.Name] = method
+	}
+
+	return methods
+}
+
 func ReflectFieldValue(object interface{}, name string) reflect.Value {
 	return reflect.Indirect(reflect.ValueOf(object)).FieldByName(name)
+}
+
+func ReflectFieldValueInterface(object interface{}, name string) interface{} {
+	return ReflectValueInterface(reflect.Indirect(reflect.ValueOf(object)).FieldByName(name))
 }
 
 func ReflectCallMethod(object interface{}, name string, params ...interface{}) []reflect.Value {
@@ -71,7 +86,6 @@ func ReflectStructFieldsTag(object interface{}) map[string]reflect.StructTag {
 
 	for i := 0; i < nums; i++ {
 		typeField := reflectType.Field(i)
-
 		fields[typeField.Name] = typeField.Tag
 	}
 

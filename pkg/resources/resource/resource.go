@@ -3,103 +3,82 @@ package resource
 import (
 	"github.com/blog/pkg/utils"
 	"reflect"
+	"regexp"
 	"strings"
 )
 
-var (
-	resourcesFields map[reflect.Type]map[string]map[string]string
-)
+type MapCache map[string]map[string]string
 
-const (
-	Only   = iota
-	Except = iota
+var (
+	resourcesFields  map[reflect.Type]MapCache
+	resourcesMethods map[reflect.Type]MapCache
 )
 
 type Resource struct {
-	source       interface{}
-	fields       []string
-	status       int
-	onlyFields   resourceFields
-	exceptFields resourceFields
+	source interface{}
+	fields []string
 }
 
-func (r *Resource) Only(fields []string) {
+func (r *Resource) Fields(fields []string) {
 	r.fields = fields
-	r.status = Only
-}
-
-func (r *Resource) Except(fields []string) {
-	r.fields = fields
-	r.status = Except
 }
 
 func (r *Resource) Source() interface{} {
 	return r.source
 }
 
-// @todo effectiveFields  Transform
-// @todo 只写到这，需要在transform里面取出有有效交集或差集字段
-// @todo 然后用call调用字段值或方法
-
-// Get effective fields
-func (r *Resource) effectiveFields() fields {
-	if len(r.onlyFields) > 0 {
-		return r.onlyFields
-	}
-
-	fields := utils.ReflectFieldsName(r.resource)
-	if len(r.exceptFields) > 0 {
-		return utils.SliceStringExcept(fields, t.exceptFields)
-	}
-
-	return fields
-}
-
 //Core conversion method
 func (r *Resource) Transform(source interface{}) map[string]interface{} {
-
-	for name, field := range r.ReflectRelationFields(source) {
-		if utils.SliceStringIn(r.fields, name) && r.status == Except {
-			continue
+	fields := r.ReflectRelationFields(source)
+	methods := r.ReflectRelationMethods(source)
+	collection := make(map[string]interface{}, 0)
+	for _, field := range r.fields {
+		// method 优先
+		if v, ok := methods[field]; ok {
+			collection[v[`alias`]] = utils.ReflectValueInterface(utils.ReflectCallMethod(source, v[`method`])[0])
 		}
 
-		if utils.SliceStringIn(methods, method) {
-			collection[fieldKey] = utils.ReflectCallMethod(t.source, method)[0].Interface()
-			//collection[fieldKey] = utils.ReflectCallMethod(t, method)[0].Interface()
-		} else {
-			collection[fieldKey] = utils.ReflectFieldValue(t.resource, field).Interface()
-		}
-	}
-
-	methods := utils.ReflectMethodsName(r.source)
-
-	collection := make(map[string]interface{})
-	for _, field := range r.effectiveFields() {
-		method := utils.StringUcWords([]string{"Get", field, `Field`})
-		fieldKey := utils.StringSnakeCase(field)
-		if utils.SliceStringIn(methods, method) {
-			collection[fieldKey] = utils.ReflectCallMethod(t.source, method)[0].Interface()
-			//collection[fieldKey] = utils.ReflectCallMethod(t, method)[0].Interface()
-		} else {
-			collection[fieldKey] = utils.ReflectFieldValue(t.resource, field).Interface()
+		if v, ok := fields[field]; ok {
+			if v[`method`] != `` {
+				collection[v[`alias`]] = utils.ReflectValueInterface(utils.ReflectCallMethod(source, v[`method`])[0])
+			} else {
+				collection[v[`alias`]] = utils.ReflectFieldValueInterface(source, field)
+			}
 		}
 	}
 
-	return map[string]interface{}{"data": collection}
+	return collection
 }
 
-type testResource struct {
-	ID uint `resource:"id,method"`
+func (r *Resource) ReflectRelationMethods(source interface{}) MapCache {
+	reflectType := reflect.TypeOf(source)
+	if v, ok := resourcesMethods[reflectType]; ok {
+		return v
+	}
+
+	methods := make(MapCache, 0)
+
+	for name := range utils.ReflectMethods(source) {
+		if regexp.MustCompile("^(.+)Field$").MatchString(name) {
+			exceptFieldMethodName := name[0 : len(name)-5]
+			methods[exceptFieldMethodName] = map[string]string{`alias`: utils.StringSnakeCase(exceptFieldMethodName), `method`: name}
+		}
+
+	}
+
+	resourcesMethods[reflectType] = methods
+
+	return methods
 }
 
-func (r *Resource) ReflectRelationFields(source interface{}) map[string]map[string]string {
+func (r *Resource) ReflectRelationFields(source interface{}) MapCache {
 
 	reflectType := reflect.TypeOf(source)
 	if v, ok := resourcesFields[reflectType]; ok {
 		return v
 	}
 
-	fields := make(map[string]map[string]string, 0)
+	fields := make(MapCache, 0)
 
 	for name, tag := range utils.ReflectStructFieldsTag(source) {
 		var alias, method string
@@ -114,9 +93,9 @@ func (r *Resource) ReflectRelationFields(source interface{}) map[string]map[stri
 			alias = utils.StringSnakeCase(name)
 		}
 
-		if method == `` {
-			method = utils.StringUcWords([]string{name, `Field`})
-		}
+		//if method == `` {
+		//	method = utils.StringUcWords([]string{name, `Field`})
+		//}
 
 		fields[name] = map[string]string{`alias`: alias, `method`: method,}
 	}
