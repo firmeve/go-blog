@@ -10,8 +10,8 @@ import (
 type MapCache map[string]map[string]string
 
 var (
-	resourcesFields  map[reflect.Type]MapCache
-	resourcesMethods map[reflect.Type]MapCache
+	resourcesFields  = make(map[reflect.Type]MapCache, 0)
+	resourcesMethods = make(map[reflect.Type]MapCache, 0)
 )
 
 type Resource struct {
@@ -19,8 +19,9 @@ type Resource struct {
 	fields []string
 }
 
-func (r *Resource) Fields(fields []string) {
+func (r *Resource) Fields(fields ...string) *Resource {
 	r.fields = fields
+	return r
 }
 
 func (r *Resource) Source() interface{} {
@@ -51,7 +52,9 @@ func (r *Resource) Transform(source interface{}) map[string]interface{} {
 }
 
 func (r *Resource) ReflectRelationMethods(source interface{}) MapCache {
+
 	reflectType := reflect.TypeOf(source)
+
 	if v, ok := resourcesMethods[reflectType]; ok {
 		return v
 	}
@@ -99,10 +102,17 @@ func (r *Resource) ReflectRelationFields(source interface{}) MapCache {
 
 		fields[name] = map[string]string{`alias`: alias, `method`: method,}
 	}
-
+	//fmt.Println(fields)
 	resourcesFields[reflectType] = fields
 
 	return fields
+}
+
+func NewResource(source interface{}, fields ...string) *Resource {
+	return &Resource{
+		source: source,
+		fields: fields,
+	}
 }
 
 //func (r *Resource) ReflectRelationFields(source interface{}) map[string]interface{} {
